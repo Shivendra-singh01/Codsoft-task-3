@@ -2,13 +2,26 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const authRoutes = require("./routes/authRoutes");
 const sequelize = require("./config/database");
 const User = require("./models/User");
+const Contact = require("./models/Contact");
+
+// relationship description
+User.hasMany(Contact, {
+    foreignKey: "userId",
+    onDelete: "CASCADE"
+});
+
+Contact.belongsTo(User, {
+    foreignKey: "userId"
+});
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/auth",authRoutes);
 
 app.get("/", (req, res) => {
     res.json({
@@ -20,6 +33,7 @@ app.get("/", (req, res) => {
 sequelize.authenticate()
     .then(() => {
         console.log("MySQL database connected");
+        return sequelize.sync();
     })
     .then(() => {
         console.log("Database tables synchronized");
